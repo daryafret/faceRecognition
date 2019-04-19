@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to FaceRecognition</title>
+    <link rel="stylesheet" type="text/css" href="./static/styles/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Baloo+Chettan" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+	label.custom-file-label{
+	  display: block;
+	  width:900px;
+	}
+	body {
+	  background: linear-gradient(to top left, #d4fc79, #96e6a1) no-repeat;
+	  height:100%;
+	} 
+    </style>
+</head>
+<body>
+<div id="notifies"></div>
+<h1 id="h1-title">Welcome to FaceRecognition</h1>
+<form id="form" method="POST" enctype="multipart/form-data" onsubmit="return false;">
+    <div id="formLoad">
+        <div  class="custom-file input-group mb-3">
+            <input id="file-picker" type="file" name="file" accept="image/jpeg,image/png" class="custom-file-input" aria-describedby="inputGroupFileAddon01">
+            <label id="file-picker-label" class="custom-file-label" for="file-picker">Load your image</label>
+        </div>
+    </div>
+</form>
+<div id="results-metrics" class="form-result conrainer p-3 mb-2 rounded"></div>
+<div id="imgs-results" class="wrapper-results">    
+    <div id="results-source" class="result outputImg container p-3 mb-2 rounded"></div>
+    <div id="results-bb" class="result outputImg container p-3 mb-2 rounded"></div>
+    <div id="results-kl" class="result outputImg container p-3 mb-2 rounded">
+        <div id="carousel-kl" class="mycarousel" data-interval="false" style="height:99%;overflow-y:scroll;">
+            <div id="inner-result-kl"></div>
+            <div id="inner-result-rot"></div>
+        </div>
+    </div>
+
+    <div id="results-mark" class="result outputImg container p-3 mb-2 rounded"></div>
+</div>
+
+<div id="mask"></div>
+<div id="loader" class="loader"></div>
+
+<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src={{ url_for('static', filename='js/main.js') }}></script>
+</body>
+</html>
