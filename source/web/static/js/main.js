@@ -25,7 +25,7 @@ $(document).ready(function() {
                             Results.putInto("results-mark", "Final img:", data.imgs[4], data, PutDataType.SIMPLE);
 
                             var metricPerform = data.metrics.time;
-                            metricPerform = Math.round(metricPerform * 10000) / 10000;
+                            metricPerform = Math.round(metricPerform * 100) / 10000;
                             $('#results-metrics').html('<p class="lead text-md-left">Time: ' + metricPerform + ' sec.</p>');
                             $('#results-metrics').show();
                         }
