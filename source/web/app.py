@@ -24,12 +24,11 @@ def recognize_faces(image):
     (rows, cols, depth) = (image.shape[0], image.shape[1], image.shape[2])
     detection_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
     recognition_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
-    
-    
+   
     face_recognition.recognizeFaces(image.ctypes.data_as(C.POINTER(C.c_ubyte)), rows, cols,
                                     detection_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
                                     recognition_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
-                                    )
+				    )
 
     aligned_faces_count = face_recognition.getAlignedFacesCount()
     align_width = np.zeros(dtype=np.uint32, shape=(1, aligned_faces_count))
@@ -49,13 +48,28 @@ def recognize_faces(image):
     align_data = np.zeros(dtype=np.uint8, shape=(1, align_rows * align_cols * depth))
     face_recognition.getAlignedFaces(align_data.ctypes.data_as(C.POINTER(C.c_ubyte)))
 
+    beforeAlign_data = np.zeros(dtype=np.uint8, shape=(1, align_rows * align_cols * depth))
+    face_recognition.getBeforeAlignedFaces(beforeAlign_data.ctypes.data_as(C.POINTER(C.c_ubyte)))
+
     align_results = []
+    beforeAlign_results = []
+    for i in range(aligned_faces_count):
+        width = align_width[0][i]
+        height = align_height[0][i]
+        size = width * height * depth
+      
+        face = beforeAlign_data[:, :size]        
+        beforeAlign_data = beforeAlign_data[:, size:]
+   
+        beforeAlign_results.append(face.reshape(height, width, depth))
+
     for i in range(aligned_faces_count):
         width = align_width[0][i]
         height = align_height[0][i]
         size = width * height * depth
       
         face = align_data[:, :size]
+
         align_data = align_data[:, size:]
         
         align_results.append(face.reshape(height, width, depth))
@@ -65,7 +79,7 @@ def recognize_faces(image):
     
     face_recognition.clear()
 
-    return detection_results, recognition_results, align_results, recognition_time
+    return detection_results, recognition_results, beforeAlign_results, align_results, recognition_time
 
 def recognizeFaces(image):
     (rows, cols, depth) = (image.shape[0], image.shape[1], image.shape[2])
@@ -102,14 +116,14 @@ def process(file_image):
     source_mini_imgs = []
     rot_mini_imgs = []
     print(len(results))
-    for i in range(len(results[2])):
+    for i in range(len(results[3])):
       source_img_name = path_root_name + '-3' + str(i) + '.jpg'
       rotation_img_name = path_root_name + '-3' + str(i) + 'r.jpg'
       cv2.imwrite(source_img_name, results[2][i])
-      cv2.imwrite(rotation_img_name, results[2][i])
+      cv2.imwrite(rotation_img_name, results[3][i])
       source_mini_imgs.append(source_img_name)
       rot_mini_imgs.append(rotation_img_name)
-    timeMetric = results[3]
+    timeMetric = results[4]
     return {'imgs': [path_root_name + '-0.jpg', path_root_name + '-1.jpg', path_root_name + '-2.jpg',
                      path_root_name + '-1.jpg',
                      path_root_name + '-2.jpg'],
