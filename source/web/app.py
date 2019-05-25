@@ -20,16 +20,45 @@ INPUT_NAME = 'file'
 #    return parser
 
 face_recognition = C.cdll.LoadLibrary('libface_recognition.so')
-def recognize_faces(image):
+def recognize_faces(image, path_for_calculate_map, path_for_result_detection_net, ground_truth):
     (rows, cols, depth) = (image.shape[0], image.shape[1], image.shape[2])
     detection_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
     recognition_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
-   
-    face_recognition.recognizeFaces(image.ctypes.data_as(C.POINTER(C.c_ubyte)), rows, cols,
-                                    detection_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
-                                    recognition_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
-				    )
+    path_map = path_for_calculate_map
+    path_res = path_for_result_detection_net
 
+    ground_truth_data = None 
+    
+    if ground_truth:
+        ground_truth_data = np.zeros(dtype=np.int32, shape=(24))
+        for key, value in ground_truth.items():
+            if key == 'Unknown':
+                key = 'unknown'
+            index = classesSequence.index(key)
+            index *= 4
+            ground_truth_data[index] = value['x']
+            ground_truth_data[index + 1] = value['y']
+            ground_truth_data[index + 2] = value['width']
+            ground_truth_data[index + 3] = value['height']
+     
+        face_recognition.recognizeFaces(image.ctypes.data_as(C.POINTER(C.c_ubyte)), rows, cols,
+                                        detection_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
+                                        recognition_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
+                                        C.c_char_p(path_map),
+                                        C.c_char_p(path_res),
+                                        ground_truth_data.ctypes.data_as(C.POINTER(C.c_int)))
+   
+    else:
+        face_recognition.recognizeFaces(image.ctypes.data_as(C.POINTER(C.c_ubyte)), rows, cols,
+                                       detection_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
+                                       recognition_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
+                                       C.c_char_p(path_map),
+                                       C.c_char_p(path_res),
+                                       ground_truth_data)
+                                    
+
+    print(ground_truth_data)
+    
     aligned_faces_count = face_recognition.getAlignedFacesCount()
     align_width = np.zeros(dtype=np.uint32, shape=(1, aligned_faces_count))
     align_height = np.zeros(dtype=np.uint32, shape=(1, aligned_faces_count))
@@ -49,29 +78,28 @@ def recognize_faces(image):
     face_recognition.getAlignedFaces(align_data.ctypes.data_as(C.POINTER(C.c_ubyte)))
 
     beforeAlign_data = np.zeros(dtype=np.uint8, shape=(1, align_rows * align_cols * depth))
-    face_recognition.getBeforeAlignedFaces(beforeAlign_data.ctypes.data_as(C.POINTER(C.c_ubyte)))
+    face_recognition.getDetectedFaces(beforeAlign_data.ctypes.data_as(C.POINTER(C.c_ubyte)))
 
-    align_results = []
+
     beforeAlign_results = []
     for i in range(aligned_faces_count):
         width = align_width[0][i]
         height = align_height[0][i]
         size = width * height * depth
       
-        face = beforeAlign_data[:, :size]        
+        face = beforeAlign_data[:, :size]
         beforeAlign_data = beforeAlign_data[:, size:]
-   
+        
         beforeAlign_results.append(face.reshape(height, width, depth))
-
+    
+    align_results = []
     for i in range(aligned_faces_count):
         width = align_width[0][i]
         height = align_height[0][i]
         size = width * height * depth
-      
-        face = align_data[:, :size]
-
+        face = align_data[:, :size]       
         align_data = align_data[:, size:]
-        
+       
         align_results.append(face.reshape(height, width, depth))
     
     face_recognition.getFaceRecognitionTime.restype = C.c_double
@@ -81,15 +109,14 @@ def recognize_faces(image):
 
     return detection_results, recognition_results, beforeAlign_results, align_results, recognition_time
 
-def recognizeFaces(image):
-    (rows, cols, depth) = (image.shape[0], image.shape[1], image.shape[2])
-    detection_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
-    recognition_results = np.zeros(dtype=np.uint8, shape=(rows, cols, depth))
-    face_recognition.recognizeFaces(image.ctypes.data_as(C.POINTER(C.c_ubyte)), rows, cols,
-                                    detection_results.ctypes.data_as(C.POINTER(C.c_ubyte)),
-                                    recognition_results.ctypes.data_as(C.POINTER(C.c_ubyte)))
-    return detection_results, recognition_results
-
+def set_class_for_image(label):
+    face_recognition.setCurrentClass(C.c_char_p(label.encode('utf-8')))
+    
+def clear_class():
+    face_recognition.clearCurrentClass()
+    
+def dump_feature_vectors_to_json(json_path):
+    face_recognition.dumpFeatureVectorsToJson(C.c_char_p(json_path.encode('utf-8')))
 
 def process_origin_image(img, filename_n):
     target = os.path.join(APP_ROOT, IMAGE_FOLDER)
@@ -106,7 +133,7 @@ def process(file_image):
 #    cv2.imshow('Source image', image)
     #detects, recogns = recognizeFaces(image);
 #    results = []
-    results = recognize_faces(image)
+    results = recognize_faces(image,None,None, None);
  #   cv2.imshow('Source image', image)
 #    cv2.imshow('Detected faces', detects)
  #   cv2.imshow('Recognized faces', recogns)
@@ -132,7 +159,8 @@ def process(file_image):
 #            'metrics': {'time': 10, 'test':'test'}}
             'kl': source_mini_imgs,
             'rot': rot_mini_imgs,
-            'metrics': {'time': timeMetric, 'test': 'test'}}
+            'metrics': {'time': timeMetric, 'test': 'test'},
+            'countPersons': {'count':len(results[3])}}
 
 
 
