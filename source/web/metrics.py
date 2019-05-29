@@ -51,7 +51,7 @@ def get_top_one_error(image_path,pred_bbox,pred_class,gt_bbox, gt_class, countTr
             countTrue+=1
         if maxIOU<0.5:
             countFalse-=1
-        return countTrue, countFalse, countAllFaces, countDetectedFaces, countAllImg, countErrImg
+    return countTrue, countFalse, countAllFaces, countDetectedFaces, countAllImg, countErrImg
 
 countTrue=0
 countFalse=0
@@ -62,8 +62,8 @@ countErrImg=0
 
 path_to_dataset = os.path.abspath(os.path.join(current_path, '..', 'dataset'))+"/"
 
-#name_dir=["All", "Asyok", "Ion", "Nastya", "daryafret", "Malinka", "Unknown"]
-name_dir=["Asyok", "Ion", "Nastya", "daryafret", "Malinka", "Unknown"]
+name_dir=["All", "Asyok", "Ion", "Nastya", "daryafret", "Malinka"]
+#name_dir=["Asyok", "Ion", "Nastya", "daryafret", "Malinka", "Unknown"]
 mode="test"
 
 path_predicted = current_path+'/mAP-master/data/predicted/'
